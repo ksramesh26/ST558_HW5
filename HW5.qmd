@@ -183,15 +183,39 @@ tidy(LASSO_final)
 ```
 
 
+## Question 5 
+
+I would expect the outputs to be generally the same between the OLS and LASSO models. 
+
+based on the tidy output of LASSO_final we can see that the LASSO model has the same predictors that the OLS model has. This would indiacte that RMSE would also be very similar. 
+
+## Question 6
+
+```{r}
+ols_mlr %>%
+  predict(test) %>%
+  rmse_vec(truth = test$Age)
 
 
 
+LASSO_final %>%
+  predict(test) %>%
+  pull() %>%
+  rmse_vec(truth = test$Age)
+
+```
+
+## Question 7
+They are both using the same predictors, and their interactions are also the same and simple. 
 
 
+# Task 6: Logistic regression 
 
+## Question 1 
 
+```{r}
 
-
+```
 
 
 
