@@ -100,6 +100,7 @@ heart_split = initial_split(new_heart, prop = 0.8)
 train = training(heart_split)
 test = testing(heart_split)
 ```
+\newpage
 
 ## Task 5: OLS and LASSO
 
@@ -210,6 +211,7 @@ LASSO_final %>%
 ### Question 7
 
 They are both using the same predictors, and their interactions are also the same and simple.
+\newpage
 
 ## Task 6: Logistic regression
 
