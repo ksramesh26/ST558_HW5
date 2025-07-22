@@ -8,17 +8,18 @@ format: pdf
 
 ## Task 1 Conceptual questions
 
-1.  cross validation is to check the performance and generalization of the random forest model. Although they already reduce overfitting, cross validation make a more accurate guess of how the model will perform on unseen data
+1.  What is the purpose of using cross-validation when fitting a random forest model?
+    -   cross validation is to check the performance and generalization of the random forest model. Although they already reduce over fitting, cross validation make a more accurate guess of how the model will perform on unseen data
+2.  Describe the bagged tree algorithm.
+    -   Bagging is an ensemble technique that builds decision tress on different bootstrapped samples of an original dataset. each tree is created independently and the results are averages creating a more stable and accurate prediction.
+3.  What is meant by a general linear model?
+    -   A general linear model is a statistical model where the outcome is a linear combination of predictors. This includes, simple linear regression, multiple linear regression.
 
-2.  Bagging is an ensemble technique that builds decision tress on different bootstrapped samples of an original dataset. each tree is created independently and the results are averages creating a more stable and accurate prediction.
-
-3.  A general linear model is a statistical model where the outcome is a linear combination of predictors. This includes, simple linear regression, multiple linear regression.
-
-Y = X_B + e
-
-4.  The interaction term allow for the model to check situation where one predictor depends on the value of another., It enables the model to check for more complex relationships between variables.
-
-5.  Data is split into training and test sets to evaluate the model's ability to generalize. The model is trained on a portion of a set then used to see if that training holds up on unseen data. This prevents over fitting, and increases accuracy.
+        Y = X_B + e
+4.  When fitting a multiple linear regression model, what does adding an interaction term do? That is, what does it allow the model to do differently as compared to when it is not included in the model?
+    -   The interaction term allow for the model to check situation where one predictor depends on the value of another., It enables the model to check for more complex relationships between variables.
+5.  Why do we split our data into a training and test set?
+    -   Data is split into training and test sets to evaluate the model's ability to generalize. The model is trained on a portion of a set then used to see if that training holds up on unseen data. This prevents over fitting, and increases accuracy.
 
 \newpage
 
@@ -97,7 +98,6 @@ train = training(heart_split)
 test = testing(heart_split)
 ```
 
-
 ## Task 5: OLS and LASSO
 
 ### Question 1
@@ -108,13 +108,13 @@ ols_mlr = lm(Age ~ MaxHR + HeartDisease_FACTORED + MaxHR*HeartDisease_FACTORED, 
 summary(ols_mlr)
 ```
 
-
-### Question 2 
+### Question 2
 
 ```{r}
 yardstick::rmse_vec(test$Age, predict(ols_mlr, test))
 ```
-### Question 3 
+
+### Question 3
 
 ```{r}
 LASSO_recipe = recipe(Age ~ MaxHR + HeartDisease_FACTORED, data = train) %>%
@@ -125,7 +125,7 @@ LASSO_recipe = recipe(Age ~ MaxHR + HeartDisease_FACTORED, data = train) %>%
 LASSO_recipe
 ```
 
-### Question 4 
+### Question 4
 
 ```{r}
 set.seed(101)
@@ -182,12 +182,11 @@ LASSO_final <- lasso_workflow %>%
 tidy(LASSO_final)
 ```
 
+### Question 5
 
-### Question 5 
+I would expect the outputs to be generally the same between the OLS and LASSO models.
 
-I would expect the outputs to be generally the same between the OLS and LASSO models. 
-
-based on the tidy output of LASSO_final we can see that the LASSO model has the same predictors that the OLS model has. This would indiacte that RMSE would also be very similar. 
+based on the tidy output of LASSO_final we can see that the LASSO model has the same predictors that the OLS model has. This would indiacte that RMSE would also be very similar.
 
 ### Question 6
 
@@ -206,12 +205,12 @@ LASSO_final %>%
 ```
 
 ### Question 7
-They are both using the same predictors, and their interactions are also the same and simple. 
 
+They are both using the same predictors, and their interactions are also the same and simple.
 
-## Task 6: Logistic regression 
+## Task 6: Logistic regression
 
-### Question 1 
+### Question 1
 
 ```{r}
 logrec1 <- recipe(HeartDisease_FACTORED ~ MaxHR, data = train) %>%
@@ -222,12 +221,10 @@ logrec2 <- recipe(HeartDisease_FACTORED ~ Age + Sex + ChestPainType + RestingBP,
   step_dummy(all_nominal_predictors())
 ```
 
-
 ```{r}
 set.seed(101)
 cv_repeats <- vfold_cv(train, 10, 5)
 ```
-
 
 ```{r}
 log_spec <- logistic_reg() %>%
@@ -244,7 +241,6 @@ LR2_wkf <- workflow() |>
 add_recipe(logrec2) |>
 add_model(log_spec)
 ```
-
 
 ```{r}
 LR1_fit <- LR1_wkf |>
@@ -267,6 +263,7 @@ mean(train$HeartDisease_FACTORED == "Y")
 Model 2 was the better performing model it had the highest accuracy and the lowest loss.
 
 ### Question 2
+
 ```{r}
 final_model <- LR2_wkf %>% 
   fit(data = train)
@@ -282,17 +279,8 @@ confusionMatrix(
 
 ### Question 3
 
-The model's sensitivity was 0.7553: The model will miss about 24.5% of healthy patients. It will false flag almost 1/4 healthy people as diseased. 
+The model's sensitivity was 0.7553: The model will miss about 24.5% of healthy patients. It will false flag almost 1/4 healthy people as diseased.
 
-The model's specificity was 0.8111: The model correctly identified 81% of actual heart disease cases but will miss 19% of diseased patients. 
+The model's specificity was 0.8111: The model correctly identified 81% of actual heart disease cases but will miss 19% of diseased patients.
 
-The model is better at confirming positive cases than it is with ruling out disease. 
-
-
-
-
-
-
-
-
-
+The model is better at confirming positive cases than it is with ruling out disease.
