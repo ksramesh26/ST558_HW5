@@ -1,0 +1,205 @@
+---
+title: "ST558_HW5"
+author: Keshav Ramesh
+format: pdf
+---
+
+\newpage
+
+# Task 1 Conceptual questions
+
+1.  corss vaalidation is to check the performance and generalizability of the random forest model. Although they already reduce overfitting, cross validation make a more accruate guess of how the model will perform on unseen data
+
+2.  Bagging is an ensable technique that builds decision tress on different bootstrapped samples of an original dataset. each tree is created independently and the results are averages creating a more stable and accurate prediction.
+
+3.  A general linear model is a statistical model where the outcome is a linear combination of predictors. This includes, simple linear regression, multiple linear regression.
+
+Y = X_B + e
+
+4.  The interaction term allow for the model to check situation where one predictor depends on the value of another., It enables the model to check for more complex relatoinships between variables.
+
+5.  Data is split into training and test sets to evalueate the model's ability to genralize. The model is trained on a portion of a set then used to see if that training holds up on unseen data. This prevents overfitting, and increases accuracy.
+
+\newpage
+
+# Task 2: Data Prep
+
+## Packages and Data
+
+```{r message=FALSE}
+library(tidyverse)
+library(tidymodels)
+library(caret)
+library(yardstick)
+library(glmnet)
+
+heart = as_tibble(read_csv("heart.csv"))
+```
+
+## Question 1
+
+```{r}
+summary(heart)
+```
+
+a.  heart disease is being treated as a quantitative variable, it is a storing values as either 1 or 0.
+b.  This does not make sense as we should eb treating the variables as categorical, as a yes or no response. While this does work in theory as a binary 1/0 response, it would be better to treat this as a facotrs with levels of yes or no, or T and F.
+
+## Question 2
+
+```{r}
+new_heart = heart %>%
+  mutate(HeartDisease_FACTORED = factor(HeartDisease, levels = c(0,1), labels = c("N", "Y"))) %>%
+  select(-ST_Slope, -HeartDisease)
+
+head(new_heart)
+```
+
+\newpage
+
+# Task 3: EDA
+
+```{r}
+new_heart %>%
+  ggplot(
+    aes(
+      x = MaxHR,
+      y = Age, 
+      colour = HeartDisease_FACTORED
+    )
+  ) +
+  geom_point() +
+  geom_smooth(method = "lm", se = F) +
+  scale_color_brewer(palette = "Set1") +
+  labs(
+    title = "Age vs Max Heart Rate by Heart Disease Status",
+    x = "Max Heart Rate",
+    y = "Age",
+    color = "Heart Disease"
+  ) +
+  theme_minimal()
+```
+
+## Question 2
+
+An interaction model would be more accurate. The relationship between max heart rate and age differed depending on whether or not the person has heart disease. The have different slops indicating that max hr depends on heart disease status. This is algined with an interactive model not an additive model.
+
+\newpage
+
+# Task 4: Testing and Training
+
+```{r}
+set.seed(101)
+
+heart_split = initial_split(new_heart, prop = 0.8)
+
+train = training(heart_split)
+test = testing(heart_split)
+```
+
+
+# Task 5: OLS and LASSO
+
+## Question 1
+
+```{r}
+ols_mlr = lm(Age ~ MaxHR + HeartDisease_FACTORED + MaxHR*HeartDisease_FACTORED, data = train)
+
+summary(ols_mlr)
+```
+
+
+## Question 2 
+
+```{r}
+yardstick::rmse_vec(test$Age, predict(ols_mlr, test))
+```
+## Question 3 
+
+```{r}
+LASSO_recipe = recipe(Age ~ MaxHR + HeartDisease_FACTORED, data = train) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_normalize(all_predictors()) %>%     
+  step_interact(~ MaxHR:starts_with("HeartDisease_FACTORED"))
+
+LASSO_recipe
+```
+
+## Question 4 
+
+```{r}
+set.seed(101)
+cv_folds = vfold_cv(train, v = 10)
+
+lasso_model = linear_reg(penalty = tune(), mixture = 1) %>%
+  set_engine("glmnet")
+
+lasso_workflow = workflow() %>%
+  add_model(lasso_model) %>%
+  add_recipe(LASSO_recipe)
+lasso_workflow
+```
+
+```{r}
+LASSO_grid = lasso_workflow %>%
+  tune_grid(resamples = cv_folds, grid = grid_regular(penalty(), levels = 200))
+
+LASSO_grid
+```
+
+```{r}
+LASSO_grid %>%
+  collect_metrics() %>%
+  filter(.metric == "rmse")
+```
+
+```{r}
+LASSO_grid %>%
+  collect_metrics() %>%
+  filter(.metric == "rmse") %>%
+  ggplot(aes(penalty, mean, color = .metric)) +
+  geom_line()
+```
+
+```{r}
+lowest_rmse <- LASSO_grid %>%
+  select_best(metric = "rmse")
+lowest_rmse
+```
+
+```{r}
+lasso_workflow %>%
+  finalize_workflow(lowest_rmse)
+```
+
+```{r}
+#fit it to the entire training set to see the model fit
+LASSO_final <- lasso_workflow %>%
+  finalize_workflow(lowest_rmse) %>%
+  fit(train)
+
+
+tidy(LASSO_final)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
