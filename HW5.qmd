@@ -27,7 +27,7 @@ format: pdf
 
 ### Packages and Data
 
-```{r message=FALSE}
+```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(tidymodels)
 library(caret)
