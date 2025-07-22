@@ -1,7 +1,10 @@
 ---
-title: "ST558_HW5"
+title: "ST558 HomeWork 5"
 author: Keshav Ramesh
-format: pdf
+format: 
+  pdf:
+    documentclass: article
+    geometry: margin=0.75in
 ---
 
 \newpage
